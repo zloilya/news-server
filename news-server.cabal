@@ -1,0 +1,145 @@
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.34.4.
+--
+-- see: https://github.com/sol/hpack
+
+name:           news-server
+version:        0.1.0.0
+description:    Please see the README on GitHub at <https://github.com/githubuser/news-server#readme>
+homepage:       https://github.com/githubuser/news-server#readme
+bug-reports:    https://github.com/githubuser/news-server/issues
+author:         Author name here
+maintainer:     example@example.com
+copyright:      2022 Author name here
+license:        BSD3
+license-file:   LICENSE
+build-type:     Simple
+extra-source-files:
+    README.md
+    ChangeLog.md
+
+source-repository head
+  type: git
+  location: https://github.com/githubuser/news-server
+
+library
+  exposed-modules:
+      Config
+      Example
+      Lib
+      PostgresQuery
+      Types
+  other-modules:
+      Paths_news_server
+  hs-source-dirs:
+      src
+  default-extensions:
+      DataKinds
+      OverloadedStrings
+      FlexibleContexts
+      RecordWildCards
+      RankNTypes
+      TypeApplications
+      ViewPatterns
+      NamedFieldPuns
+      DerivingStrategies
+      GeneralizedNewtypeDeriving
+      DeriveGeneric
+      DeriveAnyClass
+      DerivingVia
+  build-depends:
+      aeson
+    , base >=4.7 && <5
+    , base64-bytestring
+    , bytestring
+    , cryptonite
+    , http-types
+    , postgresql-simple
+    , text
+    , text-show
+    , time
+    , wai
+    , wai-extra
+    , warp
+    , yaml
+  default-language: Haskell2010
+
+executable news-server-exe
+  main-is: Main.hs
+  other-modules:
+      Paths_news_server
+  hs-source-dirs:
+      app
+  default-extensions:
+      DataKinds
+      OverloadedStrings
+      FlexibleContexts
+      RecordWildCards
+      RankNTypes
+      TypeApplications
+      ViewPatterns
+      NamedFieldPuns
+      DerivingStrategies
+      GeneralizedNewtypeDeriving
+      DeriveGeneric
+      DeriveAnyClass
+      DerivingVia
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      aeson
+    , base >=4.7 && <5
+    , base64-bytestring
+    , bytestring
+    , cryptonite
+    , http-types
+    , news-server
+    , postgresql-simple
+    , text
+    , text-show
+    , time
+    , wai
+    , wai-extra
+    , warp
+    , yaml
+  default-language: Haskell2010
+
+test-suite news-server-test
+  type: exitcode-stdio-1.0
+  main-is: Spec.hs
+  other-modules:
+      Paths_news_server
+  hs-source-dirs:
+      test
+  default-extensions:
+      DataKinds
+      OverloadedStrings
+      FlexibleContexts
+      RecordWildCards
+      RankNTypes
+      TypeApplications
+      ViewPatterns
+      NamedFieldPuns
+      DerivingStrategies
+      GeneralizedNewtypeDeriving
+      DeriveGeneric
+      DeriveAnyClass
+      DerivingVia
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      aeson
+    , base >=4.7 && <5
+    , base64-bytestring
+    , bytestring
+    , cryptonite
+    , http-types
+    , news-server
+    , postgresql-simple
+    , text
+    , text-show
+    , time
+    , wai
+    , wai-extra
+    , warp
+    , yaml
+  default-language: Haskell2010
