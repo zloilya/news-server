@@ -1,0 +1,26 @@
+
+# config with settings server
+
+# ------------------------------------------ #
+
+# database host
+host: "localhost"
+
+# database name
+dbname: "news_server"
+
+# limit for query
+limit: 20
+
+# log level: Debug | Info | Warn
+loglevel: "Debug"
+
+# tables in the database
+tables:
+  tableUser: "tableUser"
+  tableCat: "tableCat"
+  tableImG: "tableImG"
+  tableNewsImG: "tableNewsImG"
+  tableNewsRow: "tableNewsRow"
+
+# ------------------------------------------ #
