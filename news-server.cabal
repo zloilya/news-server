@@ -25,8 +25,10 @@ source-repository head
 
 library
   exposed-modules:
+      ActionUpdate
       Config
       Example
+      Filters
       Lib
       PostgresQuery
       Types

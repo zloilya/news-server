@@ -4,7 +4,9 @@ module Types
     NewsRow (..),
     NewsImG (..),
     News(..),
-    ImG(..)
+    ImG(..),
+    Choose(..),
+    param
   )
 where
 
@@ -13,6 +15,8 @@ import Data.Text (Text)
 import Data.Time (Day)
 import Database.PostgreSQL.Simple (FromRow, ToRow)
 import GHC.Generics (Generic)
+import Crypto.KDF.PBKDF2 (Parameters (Parameters))
+import Data.Aeson.Types (FromJSON, ToJSON)
 
 data User = User
   { user_id :: Int,
@@ -31,13 +35,13 @@ data Category = Category
     cat_description :: Text,
     cat_parent :: Maybe Int
   }
-  deriving (Generic, Eq, Ord, ToRow, FromRow)
+  deriving (ToJSON, Generic, Eq, Ord, ToRow, FromRow)
 
 data ImG = ImG
   { img_id :: Int,
-    img_base64 :: ByteString
+    img_base64 :: Text
   }
-  deriving (Generic, Eq, Ord, ToRow, FromRow)
+  deriving (ToJSON, FromJSON, Generic, Eq, Ord, ToRow, FromRow)
 
 data NewsImG = NewsImG
   { news_id_many :: Int,
@@ -54,7 +58,7 @@ data NewsRow = NewsRow
     news_content :: Text,
     news_publish :: Bool
   }
-  deriving (Generic, Eq, Ord, ToRow, FromRow)
+  deriving (ToJSON, Generic, Eq, Ord, ToRow, FromRow)
 
 data News = News
   { news_row :: NewsRow,
@@ -63,3 +67,15 @@ data News = News
     news_imgs :: [ImG]
   }
   deriving (Eq, Ord)
+
+data Choose
+  = N [News]
+  | C [Category]
+  | U [User]
+  | I ImG
+  | Nill
+  | Ok
+  | Error ByteString
+
+param :: Parameters
+param = Parameters 4096 256

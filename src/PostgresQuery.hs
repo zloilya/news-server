@@ -1,4 +1,30 @@
-module PostgresQuery where
+module PostgresQuery
+  ( Postgres (..),
+    createCategory,
+    editCategory,
+    editCategoryParent,
+    executeBracket,
+    queryAllCategory,
+    createNews,
+    queryUnpublishNews,
+    queryNews,
+    queryNewsLimitOffset,
+    queryNewsOffset,
+    queryNewsLimit,
+    queryUnpublishNewsOffset,
+    queryUnpublishNewsLimit,
+    editNewsTitle,
+    editNewsContent,
+    editNewsPublish,
+    createUser,
+    queryUsers,
+    queryUsersLimitOffset,
+    queryUsersLimit,
+    queryUsersOffset,
+    editNewsCategory,
+    queryImage,
+  )
+where
 
 import Control.Exception (bracket)
 import Control.Monad (unless, void)
@@ -23,20 +49,12 @@ import Database.PostgreSQL.Simple
     query_,
     returning,
   )
-import Types
+import Types (Category, ImG, News (..), NewsRow (..), User)
 
 type Table = Query
 
-type ChatId = Int64
-
-type Def = Int
-
 {-
 Postgres enviroment
--}
-{-
-  where
-    connString = encodeUtf8 $ "host=" <> host <> " dbname=" <> dbname
 -}
 data Postgres = Postgres
   { tableUser :: Table,
@@ -90,7 +108,7 @@ createNews ::
   Int ->
   Text ->
   Bool ->
-  [ByteString] ->
+  [Text] ->
   Connection ->
   IO ()
 createNews
