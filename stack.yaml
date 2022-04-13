@@ -35,7 +35,11 @@ packages:
 # These entries can reference officially published versions as well as
 # forks / in-progress versions pinned to a git hash. For example:
 #
-# extra-deps:
+#extra-deps:
+#- postgresql-query-3.9.0@sha256:6a1eb58e97c9651eedae61b19957f0ca8267e6649ca1bc0f31f4fc64163896e0,4977
+#- hreader-1.1.0@sha256:8b6d5d671a1e574a72aea4d3d1b5aae994f598a4902be553168cd403d5f7e34f,1978
+#- hset-2.2.0@sha256:f4b860555c9824510d949e846dcbdcff637066a26d0318a138ce70cb1a338481,2381
+#- type-fun-0.1.3@sha256:336b851757792f201078043210aec180021ac052f0955c71fa330a5fe11b0604,1765
 # - acme-missiles-0.3
 # - git: https://github.com/commercialhaskell/stack.git
 #   commit: e7b331f14bcffb8367cd58fbfc8b40ec7642100a

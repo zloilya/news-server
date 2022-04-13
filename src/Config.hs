@@ -1,13 +1,14 @@
 module Config where
 
+import Data.Aeson (parseJSON)
+import Data.String (fromString)
 import Data.Text (Text)
 import Data.Yaml (FromJSON)
+import Database.PostgreSQL.Simple.Types (Query)
 import GHC.Generics (Generic)
-import Database.PostgreSQL.Simple
-  ( Connection,
-    In (..),
-    Only (..),
-    Query (..))
+
+instance FromJSON Query where
+  parseJSON = fmap fromString . parseJSON
 
 {-
 log levels
@@ -37,10 +38,10 @@ data Config = Config
 tables in the database
 -}
 data Tables = Tables
-  { tableUserString :: String,
-    tableCatString :: String,
-    tableImGString :: String,
-    tableNewsImGString :: String,
-    tableNewsRowString :: String
+  { tableUser :: Query,
+    tableCat :: Query,
+    tableImG :: Query,
+    tableNewsImG :: Query,
+    tableNewsRow :: Query
   }
   deriving (FromJSON, Generic, Eq, Ord, Show)

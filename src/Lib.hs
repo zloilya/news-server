@@ -1,16 +1,19 @@
 module Lib (startSever) where
 
 import ActionUpdate (actionUpdate)
+import Config (Config (..), Tables (..))
 import Control.Concurrent (threadDelay)
 import Data.Aeson (FromJSON (..), KeyValue ((.=)), ToJSON (..), encode, object)
 import Data.Aeson.Types (Value)
 import Data.ByteString (ByteString)
+import Data.ByteString.Lazy (fromStrict)
 import qualified Data.ByteString.Lazy as LB
+import Data.String (IsString (..))
 import Data.Text (Text)
+import qualified Data.Text as T
 import Data.Text.Encoding (decodeUtf8, encodeUtf8)
 import Data.Time (Day)
 import Debug.Trace (trace)
-import Filters
 import GHC.Generics (Generic)
 import Network.HTTP.Types (status200)
 import Network.Wai
@@ -37,10 +40,6 @@ import Types
     NewsRow (..),
     User (..),
   )
-import Data.ByteString.Lazy (fromStrict)
-import Config (Config (..), Tables(..))
-import Data.String (IsString(..))
-import qualified Data.Text as T
 
 logging :: Middleware
 logging = basicAuth' check authSettings
@@ -115,15 +114,10 @@ todo: верификация запросов
 -}
 
 startSever :: Config -> IO ()
-startSever Config{..} = do
-  let defLimit = 20
-  let Tables {..} = tables
-  let tableUser = fromString tableUserString
-  let tableCat = fromString tableCatString
-  let tableImG = fromString tableImGString
-  let tableNewsImG = fromString tableNewsImGString
-  let tableNewsRow = fromString tableNewsRowString
-  let connString = encodeUtf8 $ "host=" <> host <> " dbname=" <> dbname
-  let postgres = Postgres { .. }
+startSever Config {..} = do
+  let defLimit = limit
+      Tables {..} = tables
+      connString = encodeUtf8 $ "host=" <> host <> " dbname=" <> dbname
+      postgres = Postgres {..}
   print "start Sever"
   run 8080 (logging $ app postgres)

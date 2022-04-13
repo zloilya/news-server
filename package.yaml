@@ -29,6 +29,7 @@ dependencies:
 - wai
 - http-types
 - postgresql-simple
+#- postgresql-query
 - yaml
 - time
 - base64-bytestring

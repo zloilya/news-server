@@ -30,7 +30,6 @@ import Control.Exception (bracket)
 import Control.Monad (unless, void)
 import Data.ByteString (ByteString)
 import Data.Functor ((<&>))
-import Data.Int (Int32, Int64)
 import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Text.Encoding (encodeUtf8)
