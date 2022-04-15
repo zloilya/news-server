@@ -28,26 +28,26 @@ data User = User
     user_is_admin :: Bool,
     user_can_create_news :: Bool
   }
-  deriving (Generic, Eq, Ord, ToRow, FromRow)
+  deriving (Show, Generic, Eq, Ord, ToRow, FromRow)
 
 data Category = Category
   { cat_id :: Int,
     cat_description :: Text,
     cat_parent :: Maybe Int
   }
-  deriving (ToJSON, Generic, Eq, Ord, ToRow, FromRow)
+  deriving (Show, ToJSON, Generic, Eq, Ord, ToRow, FromRow)
 
 data ImG = ImG
   { img_id :: Int,
     img_base64 :: Text
   }
-  deriving (ToJSON, FromJSON, Generic, Eq, Ord, ToRow, FromRow)
+  deriving (Show, ToJSON, FromJSON, Generic, Eq, Ord, ToRow, FromRow)
 
 data NewsImG = NewsImG
   { news_id_many :: Int,
     img_id_many :: Int
   }
-  deriving (Generic, Eq, Ord, ToRow, FromRow)
+  deriving (Show, Generic, Eq, Ord, ToRow, FromRow)
 
 data NewsRow = NewsRow
   { news_id :: Int,
@@ -58,7 +58,7 @@ data NewsRow = NewsRow
     news_content :: Text,
     news_publish :: Bool
   }
-  deriving (ToJSON, Generic, Eq, Ord, ToRow, FromRow)
+  deriving (Show, ToJSON, Generic, Eq, Ord, ToRow, FromRow)
 
 data News = News
   { news_row :: NewsRow,
@@ -66,7 +66,7 @@ data News = News
     news_cat :: Category,
     news_imgs :: [ImG]
   }
-  deriving (Eq, Ord)
+  deriving (Show, Eq, Ord)
 
 data Choose
   = N [News]
@@ -76,6 +76,7 @@ data Choose
   | Nill
   | Ok
   | Error ByteString
+  deriving Show
 
 param :: Parameters
 param = Parameters 4096 256

@@ -36,7 +36,8 @@ import Data.Text.Encoding (encodeUtf8)
 import Data.Time (Day)
 import Data.Time.Clock (getCurrentTime, utctDay)
 import Database.PostgreSQL.Simple
-  ( Connection,
+  ( Binary (..),
+    Connection,
     In (..),
     Only (..),
     Query (..),
@@ -170,25 +171,37 @@ queryNewsLimit post@Postgres {..} limit =
 queryNewsLimitOffset :: Postgres -> Int -> Int -> Bool -> IO [News]
 queryNewsLimitOffset Postgres {..} limit0 offset publish = do
   let limit = min limit0 defLimit
-  let select = "SELECT * FROM " <> tableNewsRow <> " LIMIT ? OFFSET ? WHERE news_publish = ?"
-  let myquery conn = query @_ @NewsRow conn select (limit, offset, publish)
+  print "hello2"
+  let select =
+        "SELECT * FROM "
+          <> tableNewsRow
+          <> " WHERE news_publish = ?"
+          <> " LIMIT ? OFFSET ?"
+  print $ select
+  let myquery conn = query @_ @NewsRow conn select (publish, limit, offset)
   rows <- bracket (connectPostgreSQL connString) close myquery
+  print "hello2"
   mapM action rows
   where
     action :: NewsRow -> IO News
     action row@NewsRow {news_id, news_user_id, news_cat_id} = do
+      print "hello3"
       let userselect = "SELECT * FROM " <> tableUser <> " WHERE user_id = ?"
       let userquery conn = query @_ @User conn userselect (Only news_user_id)
       -- todo: logWarn if user not exist or we have many users
       users <- bracket (connectPostgreSQL connString) close userquery
+      print "hello3"
       let user = head users
       --
+      print "hello4"
       let catselect = "SELECT * FROM " <> tableCat <> " WHERE cat_id = ?"
       let catquery conn = query @_ @Category conn catselect (Only news_cat_id)
       -- todo: logWarn if user not exist or we have many cats
       cats <- bracket (connectPostgreSQL connString) close catquery
+      print "hello4"
       let cat = head cats
       --
+      print "hello5"
       let imgIdselect = "SELECT img_id_many FROM " <> tableNewsImG <> " WHERE news_id_many = ?"
       let imgIdquery conn = fmap (fmap fromOnly) $ query @_ @(Only Int) conn imgIdselect (Only news_id)
       imgids <- bracket (connectPostgreSQL connString) close imgIdquery
@@ -196,6 +209,7 @@ queryNewsLimitOffset Postgres {..} limit0 offset publish = do
       let imgselect = "SELECT * FROM " <> tableImG <> " WHERE img_id = ?"
       let imgsquery conn = query @_ @ImG conn imgselect (Only $ In imgids)
       imgs <- bracket (connectPostgreSQL connString) close imgsquery
+      print "hello5"
       return
         News
           { news_row = row,
@@ -270,8 +284,8 @@ createUser
         insert
         ( user_name,
           user_login,
-          user_password,
-          user_salt,
+          (Binary user_password),
+          (Binary user_salt),
           user_create_date,
           user_is_admin,
           user_can_create_news
@@ -292,7 +306,10 @@ queryUsersLimit post@Postgres {..} limit =
 queryUsersLimitOffset :: Postgres -> Int -> Int -> IO [User]
 queryUsersLimitOffset Postgres {..} limit0 offset = do
   let limit = min limit0 defLimit
-  let userselect = "SELECT * FROM " <> tableUser <> " LIMIT ? OFFSET ? WHERE news_publish = ?"
+  let userselect =
+        "SELECT * FROM "
+          <> tableUser
+          <> " LIMIT ? OFFSET ?"
   let userquery conn = query @_ @User conn userselect (limit, offset)
   bracket (connectPostgreSQL connString) close userquery
 

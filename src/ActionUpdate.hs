@@ -72,7 +72,9 @@ myDecode j = decode (LB.fromStrict $ "\"" <> j <> "\"")
 myDecodeE :: FromJSON b => Either ByteString ByteString -> Either ByteString b
 myDecodeE (Left bs) = Left bs
 myDecodeE (Right bs) = case (myDecode bs) of
-  Nothing -> Left $ "not a need type"
+  Nothing -> case decode (LB.fromStrict bs) of
+    Nothing -> Left $ "not a need type: " <> bs 
+    Just a -> Right a
   Just a -> Right a
 
 findAndDecode :: FromJSON b => ByteString -> Query -> Either ByteString b
@@ -108,35 +110,31 @@ actionUpdate postgres Request {rawPathInfo = info, queryString = querys} = do
     "/create_category" -> do
       -- доступно админам
       let e_description = findInQuery "cat_description" querys
-      let e_parent = case find (isField "cat_parent") querys of
-            Nothing -> Left $ "not find " <> "cat_parent"
-            Just (_, a) -> Right $ a
-      case (e_description, e_parent) of
-        (Right a, Right b) -> do
-          exec $ createCategory postgres (decodeUtf8 a) (myDecode =<< b)
+      let parent = case find (isField "cat_parent") querys of
+            Nothing -> Nothing
+            Just (_, a) -> a
+      case (e_description) of
+        (Right a) -> do
+          exec $ createCategory postgres (decodeUtf8 a) (myDecode =<< parent)
           return Ok
-        (a, b) -> do
-          let a' = fromLeft "" a
-          let b' = fromLeft "" a
-          return $ Error $ a' <> " " <> b'
+        (Left a) -> 
+          return $ Error $ a
     "/edit_category" -> do
       -- доступно админам
       let e_id = findAndDecode "cat_id" querys
       let e_description = findInQuery "cat_description" querys
-      let e_parent = case find (isField "cat_parent") querys of
-            Nothing -> Left $ "not find " <> "cat_parent"
-            Just (_, a) -> Right $ a
-      case (e_description, e_parent, e_id) of
-        (Right a, Right b, Right c) -> do
-          exec $ editCategory postgres c (myDecode =<< b) (decodeUtf8 a)
+      let parent = case find (isField "cat_parent") querys of
+            Nothing -> Nothing
+            Just (_, a) -> a
+      case (e_description, e_id) of
+        (Right a, Right c) -> do
+          exec $ editCategory postgres c (myDecode =<< parent) (decodeUtf8 a)
           return Ok
-        (Left _, Right b, Right c) -> do
-          exec $ editCategoryParent postgres c (myDecode =<< b)
+        (Left _, Right c) -> do
+          exec $ editCategoryParent postgres c (myDecode =<< parent)
           return Ok
-        (a, b, c) -> do
-          let a' = fromLeft "" a
-          let b' = fromLeft "" a
-          return $ Error $ a' <> " " <> b'
+        e_err -> 
+          return $ Error $ encodeUtf8 $ showt e_err
     "/create_news" -> do
       -- доступно особым юзерам
       let e_title = findAndDecode "news_title" querys
@@ -196,7 +194,7 @@ actionUpdate postgres Request {rawPathInfo = info, queryString = querys} = do
             Right publish ->
               exec $ editNewsPublish postgres news_id publish
           return Ok
-    "create_user" -> do
+    "/create_user" -> do
       -- доступно админам
       let e_name = findAndDecode "user_name" querys
       let e_login = findAndDecode "user_login" querys
@@ -212,7 +210,7 @@ actionUpdate postgres Request {rawPathInfo = info, queryString = querys} = do
           return Ok
         e_err ->
           return $ Error $ encodeUtf8 $ showt e_err
-    "users" -> do
+    "/users" -> do
       -- доступно всем
       let e_limit = findAndDecode "limit" querys
       let e_offset = findAndDecode "offset" querys
@@ -225,7 +223,7 @@ actionUpdate postgres Request {rawPathInfo = info, queryString = querys} = do
           queryUsersOffset postgres offset
         (Left _, Left _) ->
           queryUsers postgres
-    "image" -> do
+    "/image" -> do
       -- доступно всем
       let e_img_id = findAndDecode "img_id" querys
       case e_img_id of

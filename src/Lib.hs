@@ -76,6 +76,7 @@ parseChoose c = case c of
         encode $
           object
             [ "news_row" .= news_row,
+              "news_user_name" .= (user_name news_user),
               "news_cat" .= news_cat,
               "news_imgs" .= news_imgs
             ]
@@ -103,6 +104,7 @@ app postgres req respond = do
   print $ "rawPathInfo =" ++ show (rawPathInfo req)
   print $ "queryString =" ++ show (queryString req)
   choose <- actionUpdate postgres req
+  print choose
   respond $
     responseLBS
       status200
