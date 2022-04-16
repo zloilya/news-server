@@ -23,6 +23,7 @@ module PostgresQuery
     queryUsersOffset,
     editNewsCategory,
     queryImage,
+    queryUser
   )
 where
 
@@ -312,6 +313,16 @@ queryUsersLimitOffset Postgres {..} limit0 offset = do
           <> " LIMIT ? OFFSET ?"
   let userquery conn = query @_ @User conn userselect (limit, offset)
   bracket (connectPostgreSQL connString) close userquery
+
+queryUser :: Postgres -> Text -> IO (Maybe User)
+queryUser Postgres {..} login = do
+  let select = "SELECT * FROM " <> tableUser <> " WHERE user_login = ?"
+  let myquery conn = query conn select (Only login)
+  ls <- bracket (connectPostgreSQL connString) close myquery
+  case ls of 
+    [] -> pure Nothing
+    [a] -> pure $ Just a
+    _ : _ -> pure Nothing
 
 queryImage :: Postgres -> Int -> IO ImG
 queryImage Postgres {..} img_id = do
