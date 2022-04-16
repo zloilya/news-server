@@ -2,7 +2,7 @@
 CREATE TABLE tableUser (
   user_id SERIAL PRIMARY KEY,
   user_name text NOT NULL, 
-  user_login text NOT NULL,
+  user_login text NOT NULL UNIQUE,
   user_password bytea NOT NULL,
   user_salt bytea NOT NULL,
   user_create_date date NOT NULL DEFAULT CURRENT_DATE,
