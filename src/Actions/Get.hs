@@ -49,6 +49,7 @@ import PostgresQuery
     queryUsersLimit,
     queryUsersLimitOffset,
     queryUsersOffset,
+    queryUnpublishNewsLimitOffset,
   )
 import TextShow (showt)
 import Types
@@ -58,7 +59,7 @@ import Types
     News (..),
     NewsRow (..),
     User (..),
-    param,
+    param, UserId' (UserId)
   )
 
 getNews :: Postgres -> Request -> IO Choose
@@ -71,7 +72,7 @@ getNews postgres Request {..} = do
   -- если head category == sort_by, то идем в базу и делаем норм запрос
   news <- case (e_limit, e_offset) of
     (Right limit, Right offset) ->
-      queryNewsLimitOffset postgres limit offset True
+      queryNewsLimitOffset postgres limit offset
     (Right limit, Left _) ->
       queryNewsLimit postgres limit
     (Left _, Right offset) ->
@@ -88,19 +89,20 @@ getCat postgres _ = do
 getUnpublishNews :: Postgres -> Request -> IO Choose
 getUnpublishNews postgres Request {..} = do
   -- доступно особым юзерам
-  e_user_id <- (pure . fmap user_id) =<< giveUser postgres requestHeaders
-  undefined -- todo: user_id
+  e_user_id <- (pure . fmap (UserId . user_id)) =<< giveUser postgres requestHeaders
   let e_limit = findAndDecode "limit" queryString
   let e_offset = findAndDecode "offset" queryString
-  N <$> case (e_limit, e_offset) of
-    (Right limit, Right offset) -> do
-      queryNewsLimitOffset postgres limit offset False
-    (Right limit, Left _) -> do
-      queryUnpublishNewsLimit postgres limit
-    (Left _, Right offset) -> do
-      queryUnpublishNewsOffset postgres offset
-    (Left _, Left _) -> do
-      queryUnpublishNews postgres
+  case (e_user_id, e_limit, e_offset) of
+    (Right user_id, Right limit, Right offset) ->
+      N <$> queryUnpublishNewsLimitOffset postgres limit offset user_id
+    (Right user_id, Right limit, Left _) ->
+      N <$> queryUnpublishNewsLimit postgres limit user_id
+    (Right user_id, Left _, Right offset) ->
+      N <$> queryUnpublishNewsOffset postgres offset user_id
+    (Right user_id, Left _, Left _) ->
+      N <$> queryUnpublishNews postgres user_id
+    e_err -> 
+      pure $ Error $ encodeUtf8 $ showt e_err
 
 getUsers :: Postgres -> Request -> IO Choose
 getUsers postgres Request {..} = do
