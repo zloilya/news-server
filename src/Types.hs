@@ -1,6 +1,41 @@
-module Types where
+module Types
+  ( ImG (..),
+    Category (..),
+    News (..),
+    NewsRow (..),
+    Choose (..),
+    User (..),
+    Content,
+    Description,
+    CanCreateNews,
+    CatId,
+    ImgId,
+    IsAdmin,
+    Limit,
+    Login,
+    Name,
+    NewsId,
+    Offset,
+    Publish,
+    Title,
+    UserId,
+    Offset' (..),
+    UserId' (..),
+    Limit' (..),
+    Title' (..),
+    CanCreateNews' (..),
+    CatId' (..),
+    Content' (..),
+    Description' (..),
+    ImgId' (..),
+    IsAdmin' (..),
+    Login' (..),
+    Name' (..),
+    NewsId' (..),
+    Publish' (..),
+  )
+where
 
-import Crypto.KDF.PBKDF2 (Parameters (Parameters))
 import Data.Aeson.Types (FromJSON, ToJSON)
 import Data.ByteString (ByteString)
 import Data.Text (Text)
@@ -70,9 +105,6 @@ data Choose
   | Error ByteString
   deriving (Show)
 
-param :: Parameters
-param = Parameters 4096 256
-
 newtype CatId' a = CatId a
   deriving newtype (Show, Eq, Ord, ToRow, Generic, ToField, FromJSON, TextShow)
 
@@ -137,3 +169,8 @@ newtype CanCreateNews' a = CanCreateNews a
   deriving newtype (Show, Eq, Ord, ToRow, Generic, ToField, FromJSON, TextShow)
 
 type CanCreateNews = CanCreateNews' Bool
+
+newtype Publish' a = Publish a
+  deriving newtype (Show, Eq, Ord, ToRow, Generic, ToField, FromJSON, TextShow)
+
+type Publish = Publish' Bool

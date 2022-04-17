@@ -27,7 +27,9 @@ getNews postgres Request {..} = do
       P.queryNewsOffset postgres offset
     (Left _, Left _) ->
       P.queryNews postgres
-  return $ N $ filter news
+  pure $ case filter (Right news) of
+    (Left bs) -> Error bs
+    (Right news) -> N news
 
 getCat :: Postgres -> Request -> IO Choose
 getCat postgres _ = do

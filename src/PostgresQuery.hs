@@ -29,20 +29,16 @@ module PostgresQuery
 where
 
 import Control.Exception (bracket)
-import Control.Monad (unless, void)
+import Control.Monad (void)
 import Data.ByteString (ByteString)
-import Data.Functor ((<&>))
 import Data.Text (Text)
-import qualified Data.Text as T
-import Data.Text.Encoding (encodeUtf8)
 import Data.Time (Day)
-import Data.Time.Clock (getCurrentTime, utctDay)
 import Database.PostgreSQL.Simple
-  ( Binary (..),
+  ( Binary,
     Connection,
     In (..),
     Only (..),
-    Query (..),
+    Query,
     close,
     connectPostgreSQL,
     execute,
@@ -67,7 +63,8 @@ import Types
     NewsId,
     NewsRow (..),
     Offset,
-    Offset' (Offset),
+    Offset' (..),
+    Publish (..),
     Title,
     User,
     UserId,
@@ -121,7 +118,7 @@ createNews ::
   UserId ->
   CatId ->
   Content ->
-  Bool ->
+  Publish ->
   [Text] ->
   Connection ->
   IO ()
@@ -253,7 +250,7 @@ editNewsContent Postgres {..} news_id news_content conn = do
   let update = "UPDATE " <> tableNewsRow <> " SET news_content = ? WHERE news_id = ?"
   void $ execute conn update (news_content, news_id)
 
-editNewsPublish :: Postgres -> NewsId -> Bool -> Connection -> IO ()
+editNewsPublish :: Postgres -> NewsId -> Publish -> Connection -> IO ()
 editNewsPublish Postgres {..} news_id news_publish conn = do
   let update = "UPDATE " <> tableNewsRow <> " SET news_publish = ? WHERE news_id = ?"
   void $ execute conn update (news_publish, news_id)
@@ -299,7 +296,7 @@ queryUsersLimitOffset Postgres {..} limit0 offset = do
   let userquery conn = query @_ @User conn userselect (limit, offset)
   bracket (connectPostgreSQL connString) close userquery
 
-queryUser :: Postgres -> Text -> IO (Maybe User)
+queryUser :: Postgres -> Login -> IO (Maybe User)
 queryUser Postgres {..} login = do
   let select = "SELECT * FROM " <> tableUser <> " WHERE user_login = ?"
   let myquery conn = query conn select (Only login)
@@ -307,7 +304,7 @@ queryUser Postgres {..} login = do
   case ls of
     [] -> pure Nothing
     [a] -> pure $ Just a
-    _ : _ -> pure Nothing -- maybe error? login is unique => it impossible
+    _ : _ -> pure Nothing -- logWarn? login is unique => it impossible
 
 queryImage :: Postgres -> ImgId -> IO ImG
 queryImage Postgres {..} img_id = do

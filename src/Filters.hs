@@ -1,12 +1,12 @@
-module Filters where
+module Filters (actionFilter) where
 
-import Data.Aeson (FromJSON (..), ToJSON (..), decode, encode)
+import Data.Aeson (FromJSON, decode)
 import Data.ByteString (ByteString, isPrefixOf)
 import Data.ByteString.Lazy (fromStrict)
 import Data.List (sortBy)
 import Data.Text (Text, isInfixOf)
 import Data.Time (Day)
-import Types (Category (..), News (..), NewsRow (..), User (..))
+import Types (Category (..), Choose (..), News (..), NewsRow (..), User (..))
 
 filtredF ::
   (FromJSON a) =>
@@ -102,16 +102,20 @@ sortByF "photos" = sortBy pred
       compare (length imgs) (length imgs')
 sortByF _ = id
 
-actionFilter :: [News] -> (ByteString, Maybe ByteString) -> [News]
-actionFilter news (_, Nothing) = news
-actionFilter news (key, Just value) = case key of
-  "created_at" -> createdF (==) value news
-  "created_until" -> createdF (>) value news
-  "created_since" -> createdF (<) value news
-  "author" -> authorF value news
-  "category_id" -> catIdF value news
-  "category_description" -> catTextF value news
-  "title" -> titleF value news
-  "content" -> contentF value news
-  "sort_by" -> sortByF value news
-  _ -> news -- 404 ???
+actionFilter :: Either ByteString [News] -> (ByteString, Maybe ByteString) -> Either ByteString [News]
+actionFilter (Right news) pair = actionFilter' news pair
+actionFilter (Left e) _ = Left e
+
+actionFilter' :: [News] -> (ByteString, Maybe ByteString) -> Either ByteString [News]
+actionFilter' news (_, Nothing) = Right news
+actionFilter' news (key, Just value) = case key of
+  "created_at" -> Right $ createdF (==) value news
+  "created_until" -> Right $ createdF (>) value news
+  "created_since" -> Right $ createdF (<) value news
+  "author" -> Right $ authorF value news
+  "category_id" -> Right $ catIdF value news
+  "category_description" -> Right $ catTextF value news
+  "title" -> Right $ titleF value news
+  "content" -> Right $ contentF value news
+  "sort_by" -> Right $ sortByF value news
+  _ -> Left $ "unidentified filter"

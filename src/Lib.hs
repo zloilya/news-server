@@ -7,35 +7,17 @@ import Actions.Get (getCat, getImage, getNews, getUnpublishNews, getUsers)
 import Config (Config (..), Tables (..))
 import Control.Concurrent (threadDelay)
 import Crypto.KDF.PBKDF2 (fastPBKDF2_SHA256)
-import Data.Aeson (FromJSON (..), KeyValue ((.=)), ToJSON (..), encode, object)
-import Data.Aeson.Types (Value)
+import Data.Aeson (ToJSON (toJSON), encode)
 import Data.ByteString (ByteString)
 import Data.ByteString.Lazy (fromStrict)
 import qualified Data.ByteString.Lazy as LB
-import Data.String (IsString (..))
-import Data.Text (Text)
-import qualified Data.Text as T
-import Data.Text.Encoding (decodeUtf8, decodeUtf8', encodeUtf8)
-import Data.Time (Day)
-import Debug.Trace (trace)
-import Encode (encodeNews, encodeUser)
-import GHC.Generics (Generic)
+import Data.Text.Encoding (encodeUtf8)
+import Encode (encodeNews, encodeUser, param)
 import Network.HTTP.Types (status200, status404)
-import Network.Wai
-  ( Application,
-    Middleware,
-    Request (..),
-    Response,
-    ResponseReceived,
-    responseLBS,
-  )
+import Network.Wai (Application, Response, responseLBS)
 import Network.Wai.Handler.Warp (run)
 import Network.Wai.Internal (Request (..))
-import Network.Wai.Middleware.HttpAuth
-  ( AuthSettings (authIsProtected),
-    CheckCreds,
-    basicAuth',
-  )
+import Network.Wai.Middleware.HttpAuth (AuthSettings (..), CheckCreds, basicAuth')
 import PostgresQuery (Postgres (..), queryUser)
 import Types
   ( Category (..),
@@ -45,7 +27,6 @@ import Types
     News (..),
     NewsRow (..),
     User (..),
-    param,
   )
 
 authSettings :: AuthSettings

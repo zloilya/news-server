@@ -1,19 +1,12 @@
-module Encode where
+module Encode (encodeNews, encodeUser, param) where
 
-import Data.Aeson (FromJSON (..), KeyValue ((.=)), ToJSON (..), encode, object)
-import Data.Aeson.Types (Value)
-import Data.ByteString (ByteString)
-import Data.ByteString.Lazy (fromStrict)
+import Crypto.KDF.PBKDF2 (Parameters (Parameters))
+import Data.Aeson (KeyValue ((.=)), encode, object)
 import qualified Data.ByteString.Lazy as LB
-import Types
-  ( Category (..),
-    Choose (..),
-    ImG (..),
-    News (..),
-    NewsRow (..),
-    User (..),
-    param,
-  )
+import Types (News (..), User (..))
+
+param :: Parameters
+param = Parameters 4096 256
 
 encodeNews :: News -> LB.ByteString
 encodeNews News {..} =

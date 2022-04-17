@@ -1,36 +1,18 @@
 module Actions.Create where
 
-import Actions.Common
-  ( findAndDecode,
-    findInQuery,
-    isField,
-    myDecode,
-    toImG,
-  )
+import Actions.Common (findAndDecode, findInQuery, isField, myDecode, toImG)
 import Crypto.KDF.PBKDF2 (Parameters (..), fastPBKDF2_SHA256)
 import Crypto.Random (getRandomBytes)
-import Data.Aeson (FromJSON, ToJSON, decode)
-import Data.Aeson.Types (Value)
-import Data.ByteString (ByteString)
-import qualified Data.ByteString.Base64 as B64
-import qualified Data.ByteString.Lazy as LB
-import Data.Either (fromLeft)
-import Data.Foldable (find, foldl')
-import Data.Text (Text)
-import Data.Text.Encoding (decodeUtf8, encodeUtf8)
-import Data.Time (Day)
+import Data.Foldable (find)
+import Data.Text.Encoding (encodeUtf8)
 import Data.Time.Clock (getCurrentTime, utctDay)
-import Database.PostgreSQL.Simple (Binary (Binary))
-import Filters (actionFilter)
-import GHC.Generics (Generic)
-import Network.HTTP.Types (RequestHeaders, hAuthorization)
-import Network.HTTP.Types.URI (Query)
+import Database.PostgreSQL.Simple (Binary (..))
+import Encode (param)
 import Network.Wai.Internal (Request (..))
-import Network.Wai.Middleware.HttpAuth (extractBasicAuth)
 import PostgresQuery (Postgres (..))
 import qualified PostgresQuery as P
 import TextShow (showt)
-import Types (Choose (Error, Ok), param)
+import Types (Choose (Error, Ok))
 
 createCat :: Postgres -> Request -> IO Choose
 createCat postgres Request {..} = do

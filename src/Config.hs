@@ -1,4 +1,4 @@
-module Config where
+module Config (Config (..), Tables (..)) where
 
 import Data.Aeson (parseJSON)
 import Data.String (fromString)
