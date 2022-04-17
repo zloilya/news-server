@@ -96,16 +96,16 @@ editCat postgres Request {..} = do
   let exec = executeBracket postgres
   -- доступно админам
   let e_id = findAndDecode "cat_id" queryString
-  let e_description = findInQuery "cat_description" queryString
+  let e_description = findAndDecode "cat_description" queryString
   let parent = case find (isField "cat_parent") queryString of
         Nothing -> Nothing
         Just (_, a) -> a
   case (e_description, e_id) of
-    (Right a, Right c) -> do
-      exec $ editCategory postgres c (myDecode =<< parent) (decodeUtf8 a)
+    (Right desc, Right cat_id) -> do
+      exec $ editCategory postgres cat_id (myDecode =<< parent) desc
       return Ok
-    (Left _, Right c) -> do
-      exec $ editCategoryParent postgres c (myDecode =<< parent)
+    (Left _, Right cat_id) -> do
+      exec $ editCategoryParent postgres cat_id (myDecode =<< parent)
       return Ok
     e_err ->
       return $ Error $ encodeUtf8 $ showt e_err

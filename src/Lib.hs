@@ -1,5 +1,3 @@
-{-# LANGUAGE LambdaCase #-}
-
 module Lib (startSever) where
 
 import Actions.Common (giveUser)
@@ -43,6 +41,7 @@ import Types
   ( Category (..),
     Choose (..),
     ImG (..),
+    Limit' (..),
     News (..),
     NewsRow (..),
     User (..),
@@ -158,7 +157,7 @@ todo: верификация запросов
 
 startSever :: Config -> IO ()
 startSever Config {..} = do
-  let defLimit = limit
+  let defLimit = Limit limit
       Tables {..} = tables
       connString = encodeUtf8 $ "host=" <> host <> " dbname=" <> dbname
       postgres = Postgres {..}

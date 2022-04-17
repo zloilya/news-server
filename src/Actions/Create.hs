@@ -1,6 +1,12 @@
 module Actions.Create where
 
 import Actions.Common
+  ( findAndDecode,
+    findInQuery,
+    isField,
+    myDecode,
+    toImG,
+  )
 import Crypto.KDF.PBKDF2
   ( Parameters (..),
     fastPBKDF2_SHA256,
@@ -17,6 +23,7 @@ import Data.Text (Text)
 import Data.Text.Encoding (decodeUtf8, encodeUtf8)
 import Data.Time (Day)
 import Data.Time.Clock (getCurrentTime, utctDay)
+import Database.PostgreSQL.Simple (Binary (Binary))
 import Filters (actionFilter)
 import GHC.Generics (Generic)
 import Network.HTTP.Types (RequestHeaders, hAuthorization)
@@ -51,30 +58,22 @@ import PostgresQuery
     queryUsersOffset,
   )
 import TextShow (showt)
-import Types
-  ( Category (..),
-    Choose (..),
-    ImG (..),
-    News (..),
-    NewsRow (..),
-    User (..),
-    param,
-  )
+import Types (Choose (Error, Ok), param)
 
 createCat :: Postgres -> Request -> IO Choose
 createCat postgres Request {..} = do
   let exec = executeBracket postgres
   -- доступно админам
-  let e_description = findInQuery "cat_description" queryString
+  let e_description = findAndDecode "cat_description" queryString
   let parent = case find (isField "cat_parent") queryString of
         Nothing -> Nothing
         Just (_, a) -> a
   case (e_description) of
-    (Right a) -> do
-      exec $ createCategory postgres (decodeUtf8 a) (myDecode =<< parent)
+    (Right desc) -> do
+      exec $ createCategory postgres desc (myDecode =<< parent)
       return Ok
-    (Left a) ->
-      return $ Error $ a
+    (Left bs) ->
+      return $ Error $ bs
 
 createNews' :: Postgres -> Request -> IO Choose
 createNews' postgres Request {..} = do
@@ -112,7 +111,7 @@ createUser' postgres Request {..} = do
     (Right name, Right login, Right password, Right is_admin, Right can) -> do
       salt <- getRandomBytes 16
       let hash = fastPBKDF2_SHA256 param password salt
-      exec $ createUser postgres name login hash salt day is_admin can
+      exec $ createUser postgres name login (Binary hash) (Binary salt) day is_admin can
       return Ok
     e_err ->
       return $ Error $ encodeUtf8 $ showt e_err

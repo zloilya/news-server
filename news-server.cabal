@@ -49,6 +49,7 @@ library
       TypeApplications
       ViewPatterns
       NamedFieldPuns
+      LambdaCase
       DerivingStrategies
       GeneralizedNewtypeDeriving
       DeriveGeneric
@@ -86,6 +87,7 @@ executable news-server-exe
       TypeApplications
       ViewPatterns
       NamedFieldPuns
+      LambdaCase
       DerivingStrategies
       GeneralizedNewtypeDeriving
       DeriveGeneric
@@ -126,6 +128,7 @@ test-suite news-server-test
       TypeApplications
       ViewPatterns
       NamedFieldPuns
+      LambdaCase
       DerivingStrategies
       GeneralizedNewtypeDeriving
       DeriveGeneric

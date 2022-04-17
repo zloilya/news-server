@@ -45,6 +45,7 @@ default-extensions:
 - TypeApplications
 - ViewPatterns
 - NamedFieldPuns
+- LambdaCase
 
 - DerivingStrategies
 - GeneralizedNewtypeDeriving

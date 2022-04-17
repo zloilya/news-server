@@ -1,22 +1,14 @@
-module Types
-  ( User (..),
-    Category (..),
-    NewsRow (..),
-    NewsImG (..),
-    News(..),
-    ImG(..),
-    Choose(..),
-    param
-  )
-where
+module Types where
 
+import Crypto.KDF.PBKDF2 (Parameters (Parameters))
+import Data.Aeson.Types (FromJSON, ToJSON)
 import Data.ByteString (ByteString)
 import Data.Text (Text)
 import Data.Time (Day)
 import Database.PostgreSQL.Simple (FromRow, ToRow)
+import Database.PostgreSQL.Simple.ToField (ToField)
 import GHC.Generics (Generic)
-import Crypto.KDF.PBKDF2 (Parameters (Parameters))
-import Data.Aeson.Types (FromJSON, ToJSON)
+import TextShow (TextShow)
 
 data User = User
   { user_id :: Int,
@@ -76,7 +68,72 @@ data Choose
   | Nill
   | Ok
   | Error ByteString
-  deriving Show
+  deriving (Show)
 
 param :: Parameters
 param = Parameters 4096 256
+
+newtype CatId' a = CatId a
+  deriving newtype (Show, Eq, Ord, ToRow, Generic, ToField, FromJSON, TextShow)
+
+type CatId = CatId' Int
+
+newtype UserId' a = UserId a
+  deriving newtype (Show, Eq, Ord, ToRow, Generic, ToField, FromJSON, TextShow)
+
+type UserId = UserId' Int
+
+newtype Offset' a = Offset a
+  deriving newtype (Show, Eq, Ord, ToRow, Generic, ToField, FromJSON, TextShow)
+
+type Offset = Offset' Int
+
+newtype Limit' a = Limit a
+  deriving newtype (Show, Eq, Ord, ToRow, Generic, ToField, FromJSON, TextShow)
+
+type Limit = Limit' Int
+
+newtype Description' a = Description a
+  deriving newtype (Show, Eq, Ord, ToRow, Generic, ToField, FromJSON, TextShow)
+
+type Description = Description' Text
+
+newtype NewsId' a = NewsId a
+  deriving newtype (Show, Eq, Ord, ToRow, Generic, ToField, FromJSON, TextShow)
+
+type NewsId = NewsId' Int
+
+newtype Title' a = Title a
+  deriving newtype (Show, Eq, Ord, ToRow, Generic, ToField, FromJSON, TextShow)
+
+type Title = Title' Text
+
+newtype Content' a = Content a
+  deriving newtype (Show, Eq, Ord, ToRow, Generic, ToField, FromJSON, TextShow)
+
+type Content = Content' Text
+
+newtype ImgId' a = ImgId a
+  deriving newtype (Show, Eq, Ord, ToRow, Generic, ToField, FromJSON, TextShow)
+
+type ImgId = ImgId' Int
+
+newtype Name' a = Name a
+  deriving newtype (Show, Eq, Ord, ToRow, Generic, ToField, FromJSON, TextShow)
+
+type Name = Name' Text
+
+newtype Login' a = Login a
+  deriving newtype (Show, Eq, Ord, ToRow, Generic, ToField, FromJSON, TextShow)
+
+type Login = Login' Text
+
+newtype IsAdmin' a = IsAdmin a
+  deriving newtype (Show, Eq, Ord, ToRow, Generic, ToField, FromJSON, TextShow)
+
+type IsAdmin = IsAdmin' Bool
+
+newtype CanCreateNews' a = CanCreateNews a
+  deriving newtype (Show, Eq, Ord, ToRow, Generic, ToField, FromJSON, TextShow)
+
+type CanCreateNews = CanCreateNews' Bool
