@@ -307,7 +307,7 @@ queryUser Postgres {..} login = do
   case ls of
     [] -> pure Nothing
     [a] -> pure $ Just a
-    _ : _ -> pure Nothing
+    _ : _ -> pure Nothing -- maybe error? login is unique => it impossible
 
 queryImage :: Postgres -> ImgId -> IO ImG
 queryImage Postgres {..} img_id = do

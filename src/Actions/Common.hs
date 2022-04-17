@@ -72,16 +72,15 @@ findInQuery name querys = case find (isField name) querys of
 myDecode :: (FromJSON a) => ByteString -> Maybe a
 myDecode j = decode (LB.fromStrict $ "\"" <> j <> "\"")
 
-myDecodeE :: FromJSON b => Either ByteString ByteString -> Either ByteString b
-myDecodeE (Left bs) = Left bs
-myDecodeE (Right bs) = case (myDecode bs) of
+myDecodeE :: FromJSON b => ByteString -> Either ByteString b
+myDecodeE bs = case (myDecode bs) of
   Nothing -> case decode (LB.fromStrict bs) of
     Nothing -> Left $ "not a need type: " <> bs
     Just a -> Right a
   Just a -> Right a
 
 findAndDecode :: FromJSON b => ByteString -> Query -> Either ByteString b
-findAndDecode bytes = myDecodeE . findInQuery bytes
+findAndDecode bytes q = (myDecodeE =<<) $ findInQuery bytes q
 
 toImG :: ImG -> Text
 toImG (ImG _ texts) = texts
@@ -92,10 +91,14 @@ giveUser postgres requestHeaders =
     Nothing -> do
       print "warning!!"
       pure $ Left $ "something go wrong"
-    Just (login, _) -> do
-      userM <- queryUser postgres (decodeUtf8 login)
-      case userM of
-        Nothing -> do
-          print "warning!!"
-          pure $ Left $ "something go wrong"
-        Just user -> pure $ Right user
+    Just (login', _) -> do
+      case (myDecodeE login') of
+        Left bs -> pure $ Left bs
+        Right login -> do
+          userM <- queryUser postgres login
+          case userM of
+            Nothing -> do
+              print "warning!!"
+              pure $ Left $ "something go wrong"
+            Just user -> pure $ Right user
+      
