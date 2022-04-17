@@ -1,64 +1,18 @@
 module Actions.Common where
 
-import Crypto.KDF.PBKDF2
-  ( Parameters (..),
-    fastPBKDF2_SHA256,
-  )
-import Crypto.Random (getRandomBytes)
-import Data.Aeson (FromJSON, ToJSON, decode)
-import Data.Aeson.Types (Value)
+import Data.Aeson (FromJSON, decode)
 import Data.ByteString (ByteString)
-import qualified Data.ByteString.Base64 as B64
 import qualified Data.ByteString.Lazy as LB
-import Data.Either (fromLeft)
-import Data.Foldable (find, foldl')
+import Data.Foldable (find)
 import Data.Text (Text)
-import Data.Text.Encoding (decodeUtf8, encodeUtf8)
-import Data.Time (Day)
-import Data.Time.Clock (getCurrentTime, utctDay)
-import Filters (actionFilter)
-import GHC.Generics (Generic)
 import Network.HTTP.Types (RequestHeaders, hAuthorization)
 import Network.HTTP.Types.URI (Query)
 import Network.Wai.Internal (Request (..))
 import Network.Wai.Middleware.HttpAuth (extractBasicAuth)
-import PostgresQuery
-  ( Postgres (..),
-    createCategory,
-    createNews,
-    createUser,
-    editCategory,
-    editCategoryParent,
-    editNewsCategory,
-    editNewsContent,
-    editNewsPublish,
-    editNewsTitle,
-    executeBracket,
-    queryAllCategory,
-    queryImage,
-    queryNews,
-    queryNewsLimit,
-    queryNewsLimitOffset,
-    queryNewsOffset,
-    queryUnpublishNews,
-    queryUnpublishNewsLimit,
-    queryUnpublishNewsOffset,
-    queryUser,
-    queryUsers,
-    queryUsersLimit,
-    queryUsersLimitOffset,
-    queryUsersOffset,
-  )
+import PostgresQuery (Postgres (..))
+import qualified PostgresQuery as P
 import TextShow (showt)
-import Types
-  ( Category (..),
-    Choose (..),
-    ImG (..),
-    News (..),
-    NewsRow (..),
-    User (..),
-    param,
-  )
+import Types (ImG (ImG), User)
 
 isField :: ByteString -> (ByteString, Maybe ByteString) -> Bool
 isField x (y, _) = x == y
@@ -95,10 +49,9 @@ giveUser postgres requestHeaders =
       case (myDecodeE login') of
         Left bs -> pure $ Left bs
         Right login -> do
-          userM <- queryUser postgres login
+          userM <- P.queryUser postgres login
           case userM of
             Nothing -> do
               print "warning!!"
               pure $ Left $ "something go wrong"
             Just user -> pure $ Right user
-      

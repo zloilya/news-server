@@ -1,7 +1,7 @@
 module Lib (startSever) where
 
 import Actions.Common (giveUser)
-import Actions.Create (createCat, createNews', createUser')
+import Actions.Create (createCat, createNews, createUser)
 import Actions.Edit (editCat, editNews)
 import Actions.Get (getCat, getImage, getNews, getUnpublishNews, getUsers)
 import Config (Config (..), Tables (..))
@@ -100,8 +100,8 @@ actionPOST :: Postgres -> Request -> IO Choose
 actionPOST postgres req@Request {..} = do
   case rawPathInfo of
     "/create_category" -> createCat postgres req
-    "/create_news" -> createNews' postgres req
-    "/create_user" -> createUser' postgres req
+    "/create_news" -> createNews postgres req
+    "/create_user" -> createUser postgres req
     _ -> pure $ Nill
 
 actionPUT :: Postgres -> Request -> IO Choose
