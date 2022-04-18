@@ -6,11 +6,16 @@ import Crypto.Random (getRandomBytes)
 import Data.Foldable (find)
 import Data.Text.Encoding (encodeUtf8)
 import Data.Time.Clock (getCurrentTime, utctDay)
+import Database.Common (Postgres (..))
+import qualified Database.Common as P (executeBracket)
+import qualified Database.Create as P
+  ( createCategory,
+    createNews,
+    createUser,
+  )
 import Database.PostgreSQL.Simple (Binary (..))
 import Encode (param)
 import Network.Wai.Internal (Request (..))
-import PostgresQuery (Postgres (..))
-import qualified PostgresQuery as P
 import TextShow (showt)
 import Types (Choose (Error, Ok))
 

@@ -5,12 +5,12 @@ import Data.ByteString (ByteString)
 import qualified Data.ByteString.Lazy as LB
 import Data.Foldable (find)
 import Data.Text (Text)
+import Database.Common (Postgres (..))
+import qualified Database.Query as P (queryUser)
 import Network.HTTP.Types (RequestHeaders, hAuthorization)
 import Network.HTTP.Types.URI (Query)
 import Network.Wai.Internal (Request (..))
 import Network.Wai.Middleware.HttpAuth (extractBasicAuth)
-import PostgresQuery (Postgres (..))
-import qualified PostgresQuery as P
 import TextShow (showt)
 import Types (ImG (ImG), User)
 

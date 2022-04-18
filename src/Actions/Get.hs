@@ -3,12 +3,40 @@ module Actions.Get where
 import Actions.Common (findAndDecode, giveUser)
 import Data.Foldable (foldl')
 import Data.Text.Encoding (encodeUtf8)
+import Database.Common (Postgres (..))
+import qualified Database.Query as P
+  ( queryAllCategory,
+    queryImage,
+    queryNews,
+    queryNewsLimit,
+    queryNewsLimitOffset,
+    queryNewsOffset,
+    queryUnpublishNews,
+    queryUnpublishNewsLimit,
+    queryUnpublishNewsLimitOffset,
+    queryUnpublishNewsOffset,
+    queryUsers,
+    queryUsersLimit,
+    queryUsersLimitOffset,
+    queryUsersOffset,
+  )
 import Filters (actionFilter)
 import Network.Wai.Internal (Request (..))
-import PostgresQuery (Postgres (..))
-import qualified PostgresQuery as P
 import TextShow (showt)
 import Types (Choose (..), User (..), UserId' (..))
+
+{-
+эм sortByF работает, только при всех новостях,
+а вот когда новости не все, то сортирует только свежие,
+что конечно не сильно ожидаемое поведение
+SELECT
+    column_list
+FROM
+    table1
+ORDER BY
+    column_list
+LIMIT row_count OFFSET offset;
+-}
 
 getNews :: Postgres -> Request -> IO Choose
 getNews postgres Request {..} = do
@@ -38,7 +66,7 @@ getCat postgres _ = do
 
 getUnpublishNews :: Postgres -> Request -> IO Choose
 getUnpublishNews postgres Request {..} = do
-  -- доступно особым юзерам
+  -- доступно юзерам
   e_user_id <- (pure . fmap (UserId . user_id)) =<< giveUser postgres requestHeaders
   let e_limit = findAndDecode "limit" queryString
   let e_offset = findAndDecode "offset" queryString

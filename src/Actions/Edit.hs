@@ -4,9 +4,17 @@ import Actions.Common (findAndDecode, isField, myDecode)
 import Data.ByteString (ByteString)
 import Data.Foldable (find)
 import Data.Text.Encoding (encodeUtf8)
+import Database.Common (Postgres (..))
+import qualified Database.Common as P (executeBracket)
+import qualified Database.Edit as P
+  ( editCategory,
+    editCategoryParent,
+    editNewsCategory,
+    editNewsContent,
+    editNewsPublish,
+    editNewsTitle,
+  )
 import Network.Wai.Internal (Request (..))
-import PostgresQuery (Postgres (..))
-import qualified PostgresQuery as P
 import TextShow (showt)
 import Types (Choose (Error, Ok))
 

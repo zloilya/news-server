@@ -30,11 +30,15 @@ library
       Actions.Edit
       Actions.Get
       Config
+      Database.Common
+      Database.Create
+      Database.Edit
+      Database.PostgresQuery
+      Database.Query
       Encode
       Example
       Filters
       Lib
-      PostgresQuery
       Types
   other-modules:
       Paths_news_server

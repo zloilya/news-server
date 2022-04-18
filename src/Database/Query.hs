@@ -1,150 +1,33 @@
-module PostgresQuery
-  ( Postgres (..),
-    createCategory,
-    editCategory,
-    editCategoryParent,
-    executeBracket,
-    queryAllCategory,
-    createNews,
-    queryUnpublishNews,
-    queryNews,
-    queryNewsLimitOffset,
-    queryNewsOffset,
-    queryNewsLimit,
-    queryUnpublishNewsOffset,
-    queryUnpublishNewsLimit,
-    editNewsTitle,
-    editNewsContent,
-    editNewsPublish,
-    createUser,
-    queryUsers,
-    queryUsersLimitOffset,
-    queryUsersLimit,
-    queryUsersOffset,
-    editNewsCategory,
-    queryImage,
-    queryUser,
-    queryUnpublishNewsLimitOffset,
-  )
-where
+module Database.Query where
 
 import Control.Exception (bracket)
-import Control.Monad (void)
-import Data.ByteString (ByteString)
-import Data.Text (Text)
-import Data.Time (Day)
+import Database.Common (Postgres (..))
 import Database.PostgreSQL.Simple
-  ( Binary,
-    Connection,
-    In (..),
+  ( In (..),
     Only (..),
-    Query,
     close,
     connectPostgreSQL,
-    execute,
-    executeMany,
     query,
     query_,
-    returning,
   )
 import Types
-  ( CanCreateNews,
-    CatId,
-    Category,
-    Content,
-    Description,
+  ( Category,
     ImG,
     ImgId,
-    IsAdmin,
     Limit,
     Login,
-    Name,
     News (..),
-    NewsId,
     NewsRow (..),
     Offset,
     Offset' (..),
-    Publish (..),
-    Title,
     User,
     UserId,
   )
-
-type Table = Query
-
-{-
-Postgres enviroment
--}
-data Postgres = Postgres
-  { tableUser :: Table,
-    tableCat :: Table,
-    tableImG :: Table,
-    tableNewsImG :: Table,
-    tableNewsRow :: Table,
-    connString :: ByteString,
-    defLimit :: Limit
-  }
-
-executeBracket :: Postgres -> (Connection -> IO ()) -> IO ()
-executeBracket Postgres {..} fun =
-  bracket (connectPostgreSQL connString) close fun
-
-createCategory :: Postgres -> Description -> Maybe Int -> Connection -> IO ()
-createCategory Postgres {..} cat_description cat_parent conn = do
-  let insert = "INSERT INTO " <> tableCat <> " (cat_description, cat_parent) VALUES (?, ?)"
-  void $ execute conn insert (cat_description, cat_parent)
-
-editCategoryParent :: Postgres -> CatId -> Maybe Int -> Connection -> IO ()
-editCategoryParent Postgres {..} cat_id cat_parent conn = do
-  let update = "UPDATE " <> tableCat <> " SET cat_parent = ? WHERE cat_id = ?"
-  void $ execute conn update (cat_parent, cat_id)
-
-editCategory :: Postgres -> CatId -> Maybe Int -> Description -> Connection -> IO ()
-editCategory Postgres {..} cat_id cat_parent cat_description conn = do
-  let update =
-        "UPDATE " <> tableCat
-          <> " SET cat_parent = ? cat_description = ? WHERE cat_id = ?"
-  void $ execute conn update (cat_parent, cat_description, cat_id)
 
 queryAllCategory :: Postgres -> IO [Category]
 queryAllCategory post@Postgres {..} = do
   let select = "SELECT * FROM " <> tableCat
   bracket (connectPostgreSQL connString) close (flip query_ select)
-
-createNews ::
-  Postgres ->
-  Title ->
-  Day ->
-  UserId ->
-  CatId ->
-  Content ->
-  Publish ->
-  [Text] ->
-  Connection ->
-  IO ()
-createNews Postgres {..} title date user_id cat_id content publish imgs conn = do
-  let insert =
-        "INSERT INTO " <> tableNewsRow
-          <> " (news_title, news_create_date, news_user_id,"
-          <> " news_cat_id, news_content, news_publish)"
-          <> " VALUES (?, ?, ?, ?, ?, ?)"
-          <> " RETURNING news_id"
-  only_news_id_list <- query conn insert (title, date, user_id, cat_id, content, publish)
-  let news_id = head $ fmap fromOnly only_news_id_list :: Int
-  --
-  let imgs_insert =
-        "INSERT INTO " <> tableImG
-          <> " (img_base64) VALUES (?)"
-          <> " RETURNING img_id"
-  let only_img_base64_list = fmap Only imgs
-  only_img_id_list <- returning conn imgs_insert only_img_base64_list
-  let img_id_list = fmap fromOnly only_img_id_list :: [Int]
-  --
-  let xs = [(news_id, x) | x <- img_id_list]
-  let news_imgs_insert =
-        "INSERT INTO " <> tableNewsImG
-          <> " (news_id_many, img_id_many) VALUES (?, ?)"
-  void $ executeMany conn news_imgs_insert xs
 
 rowToNews :: Postgres -> NewsRow -> IO News
 rowToNews Postgres {..} row@NewsRow {news_id, news_user_id, news_cat_id} = do
@@ -234,45 +117,6 @@ queryUnpublishNewsLimitOffset post@Postgres {..} limit0 offset user_id = do
   rows <- bracket (connectPostgreSQL connString) close myquery
   print "hello2"
   mapM (rowToNews post) rows
-
-editNewsCategory :: Postgres -> NewsId -> CatId -> Connection -> IO ()
-editNewsCategory Postgres {..} news_id news_cat_id conn = do
-  let update = "UPDATE " <> tableNewsRow <> " SET news_cat_id = ? WHERE news_id = ?"
-  void $ execute conn update (news_cat_id, news_id)
-
-editNewsTitle :: Postgres -> NewsId -> Title -> Connection -> IO ()
-editNewsTitle Postgres {..} news_id news_title conn = do
-  let update = "UPDATE " <> tableNewsRow <> " SET news_title = ? WHERE news_id = ?"
-  void $ execute conn update (news_title, news_id)
-
-editNewsContent :: Postgres -> NewsId -> Content -> Connection -> IO ()
-editNewsContent Postgres {..} news_id news_content conn = do
-  let update = "UPDATE " <> tableNewsRow <> " SET news_content = ? WHERE news_id = ?"
-  void $ execute conn update (news_content, news_id)
-
-editNewsPublish :: Postgres -> NewsId -> Publish -> Connection -> IO ()
-editNewsPublish Postgres {..} news_id news_publish conn = do
-  let update = "UPDATE " <> tableNewsRow <> " SET news_publish = ? WHERE news_id = ?"
-  void $ execute conn update (news_publish, news_id)
-
-createUser ::
-  Postgres ->
-  Name ->
-  Login ->
-  Binary ByteString ->
-  Binary ByteString ->
-  Day ->
-  IsAdmin ->
-  CanCreateNews ->
-  Connection ->
-  IO ()
-createUser Postgres {..} name login password salt date is_admin can conn = do
-  let insert =
-        "INSERT INTO " <> tableUser
-          <> " (user_name, user_login, user_password, user_salt,"
-          <> " user_create_date, user_is_admin, user_can_create_news)"
-          <> " VALUES (?, ?, ?, ?, ?, ?, ?)"
-  void $ execute conn insert (name, login, password, salt, date, is_admin, can)
 
 queryUsers :: Postgres -> IO [User]
 queryUsers post@Postgres {..} =

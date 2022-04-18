@@ -12,13 +12,13 @@ import Data.ByteString (ByteString)
 import Data.ByteString.Lazy (fromStrict)
 import qualified Data.ByteString.Lazy as LB
 import Data.Text.Encoding (encodeUtf8)
+import Database.Common (Postgres (..))
 import Encode (encodeNews, encodeUser, param)
 import Network.HTTP.Types (status200, status404)
 import Network.Wai (Application, Response, responseLBS)
 import Network.Wai.Handler.Warp (run)
 import Network.Wai.Internal (Request (..))
 import Network.Wai.Middleware.HttpAuth (AuthSettings (..), CheckCreds, basicAuth')
-import PostgresQuery (Postgres (..), queryUser)
 import Types
   ( Category (..),
     Choose (..),
@@ -92,14 +92,6 @@ actionPUT postgres req@Request {..} = do
     "/edit_news" -> editNews postgres req
     _ -> pure $ Nill
 
-actionUpdate :: Postgres -> Request -> IO Choose
-actionUpdate postgres req@Request {..} = do
-  case requestMethod of
-    "GET" -> actionGET postgres req
-    "POST" -> actionPOST postgres req
-    "PUT" -> actionPUT postgres req
-    _ -> pure $ Nill
-
 canAction :: Postgres -> Request -> IO Bool
 canAction postgres req@Request {..} = do
   user <- giveUser postgres requestHeaders
@@ -109,16 +101,19 @@ canAction postgres req@Request {..} = do
   pure $ canGuest rawPathInfo || canUser rawPathInfo || userAdmin
 
 app :: Postgres -> Application
-app postgres req respond = do
-  -- todo: разделять на get и post
+app postgres req@Request {..} respond = do
   print $ "new Request:"
-  print $ "rawPathInfo =" ++ show (rawPathInfo req)
-  print $ "queryString =" ++ show (queryString req)
+  print $ "rawPathInfo =" ++ show rawPathInfo
+  print $ "queryString =" ++ show queryString
   canWe <- canAction postgres req
   case canWe of
     False -> respond $ response404
     True -> do
-      choose <- actionUpdate postgres req
+      choose <- case requestMethod of
+        "GET" -> actionGET postgres req
+        "POST" -> actionPOST postgres req
+        "PUT" -> actionPUT postgres req
+        _ -> pure $ Nill
       print choose
       respond $ response200 choose
 
