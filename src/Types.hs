@@ -42,8 +42,12 @@ import Data.Text (Text)
 import Data.Time (Day)
 import Database.PostgreSQL.Simple (FromRow, ToRow)
 import Database.PostgreSQL.Simple.ToField (ToField)
+import Database.PostgreSQL.Simple.Types (Query (..))
 import GHC.Generics (Generic)
-import TextShow (TextShow)
+import TextShow (TextShow (showb))
+
+instance TextShow Query where
+  showb = showb . fromQuery
 
 data User = User
   { user_id :: Int,
@@ -83,7 +87,8 @@ data NewsRow = NewsRow
     news_user_id :: Int,
     news_cat_id :: Int,
     news_content :: Text,
-    news_publish :: Bool
+    news_publish :: Bool,
+    news_imgs_len :: Int
   }
   deriving (Show, ToJSON, Generic, Eq, Ord, ToRow, FromRow)
 

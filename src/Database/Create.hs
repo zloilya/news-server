@@ -47,10 +47,11 @@ createNews Postgres {..} title date user_id cat_id content publish imgs conn = d
   let insert =
         "INSERT INTO " <> tableNewsRow
           <> " (news_title, news_create_date, news_user_id,"
-          <> " news_cat_id, news_content, news_publish)"
-          <> " VALUES (?, ?, ?, ?, ?, ?)"
+          <> " news_cat_id, news_content, news_publish, news_imgs_len)"
+          <> " VALUES (?, ?, ?, ?, ?, ?, ?)"
           <> " RETURNING news_id"
-  only_news_id_list <- query conn insert (title, date, user_id, cat_id, content, publish)
+  let len = length imgs
+  only_news_id_list <- query conn insert (title, date, user_id, cat_id, content, publish, len)
   let news_id = head $ fmap fromOnly only_news_id_list :: Int
   --
   let imgs_insert =

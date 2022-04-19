@@ -19,15 +19,7 @@ import Network.Wai (Application, Response, responseLBS)
 import Network.Wai.Handler.Warp (run)
 import Network.Wai.Internal (Request (..))
 import Network.Wai.Middleware.HttpAuth (AuthSettings (..), CheckCreds, basicAuth')
-import Types
-  ( Category (..),
-    Choose (..),
-    ImG (..),
-    Limit' (..),
-    News (..),
-    NewsRow (..),
-    User (..),
-  )
+import Types (Choose (..), Limit' (..), User (..))
 
 authSettings :: AuthSettings
 authSettings = "My Realm" {authIsProtected = canGuestLog}

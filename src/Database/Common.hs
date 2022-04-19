@@ -17,7 +17,11 @@ data Postgres = Postgres
     tableNewsImG :: Table,
     tableNewsRow :: Table,
     connString :: ByteString,
-    defLimit :: Limit
+    defLimit :: Limit,
+    defSortNews :: Table,
+    defSortUser :: Table,
+    defSortCat :: Table,
+    defSortImg :: Table
   }
 
 executeBracket :: Postgres -> (Connection -> IO ()) -> IO ()

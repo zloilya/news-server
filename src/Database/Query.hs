@@ -1,7 +1,8 @@
 module Database.Query where
 
 import Control.Exception (bracket)
-import Database.Common (Postgres (..))
+import Data.List (intersperse)
+import Database.Common (Postgres (..), Table)
 import Database.PostgreSQL.Simple
   ( In (..),
     Only (..),
@@ -64,25 +65,29 @@ rowToNews Postgres {..} row@NewsRow {news_id, news_user_id, news_cat_id} = do
         news_imgs = imgs
       }
 
-queryNews :: Postgres -> IO [News]
+queryNews :: Postgres -> [Table] -> IO [News]
 queryNews post@Postgres {..} =
   queryNewsLimitOffset post defLimit (Offset 0)
 
-queryNewsOffset :: Postgres -> Offset -> IO [News]
+queryNewsOffset :: Postgres -> Offset -> [Table] -> IO [News]
 queryNewsOffset post@Postgres {..} offset =
   queryNewsLimitOffset post defLimit offset
 
-queryNewsLimit :: Postgres -> Limit -> IO [News]
+queryNewsLimit :: Postgres -> Limit -> [Table] -> IO [News]
 queryNewsLimit post@Postgres {..} limit =
   queryNewsLimitOffset post limit (Offset 0)
 
-queryNewsLimitOffset :: Postgres -> Limit -> Offset -> IO [News]
-queryNewsLimitOffset post@Postgres {..} limit0 offset = do
+queryNewsLimitOffset :: Postgres -> Limit -> Offset -> [Table] -> IO [News]
+queryNewsLimitOffset post@Postgres {..} limit0 offset orders0 = do
+  let orders1 = if null orders0 then [defSortNews] else orders0
+  let orders = mconcat $ intersperse ", " orders1
   let limit = min limit0 defLimit
   print "hello2"
   let select =
         "SELECT * FROM "
           <> tableNewsRow
+          <> " ORDER BY "
+          <> orders
           <> " WHERE news_publish = ?"
           <> " LIMIT ? OFFSET ?"
   print $ select

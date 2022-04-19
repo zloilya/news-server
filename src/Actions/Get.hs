@@ -1,8 +1,11 @@
 module Actions.Get where
 
-import Actions.Common (findAndDecode, giveUser)
+import Actions.Common (findAndDecode, findInQueryList, giveUser)
+import Data.ByteString (ByteString)
 import Data.Foldable (foldl')
-import Data.Text.Encoding (encodeUtf8)
+import Data.String (IsString (..))
+import qualified Data.Text as T
+import Data.Text.Encoding (decodeUtf8', encodeUtf8)
 import Database.Common (Postgres (..))
 import qualified Database.Query as P
   ( queryAllCategory,
@@ -21,6 +24,7 @@ import qualified Database.Query as P
     queryUsersOffset,
   )
 import Filters (actionFilter)
+import Network.HTTP.Types (Query)
 import Network.Wai.Internal (Request (..))
 import TextShow (showt)
 import Types (Choose (..), User (..), UserId' (..))
@@ -36,6 +40,9 @@ FROM
 ORDER BY
     column_list
 LIMIT row_count OFFSET offset;
+
+todo: сделать везде ORDER BY, иначе хз странно это как-то
+todo: переделать фильтр, так как они имеют аналогичную багу
 -}
 
 getNews :: Postgres -> Request -> IO Choose
@@ -43,24 +50,35 @@ getNews postgres Request {..} = do
   -- доступно всем
   let e_limit = findAndDecode "limit" queryString
   let e_offset = findAndDecode "offset" queryString
-  let filter news = foldl' actionFilter news queryString
-  -- todo: /news?sort_by=category
-  -- если head category == sort_by, то идем в базу и делаем норм запрос
-  news <- case (e_limit, e_offset) of
-    (Right limit, Right offset) ->
-      P.queryNewsLimitOffset postgres limit offset
-    (Right limit, Left _) ->
-      P.queryNewsLimit postgres limit
-    (Left _, Right offset) ->
-      P.queryNewsOffset postgres offset
-    (Left _, Left _) ->
-      P.queryNews postgres
-  pure $ case filter (Right news) of
-    (Left bs) -> Error bs
-    (Right news) -> N news
+
+  let (ordersB, filters) = findInQueryList "sort_by" queryString
+  let filter news = foldl' actionFilter news filters
+  -- todo: трансфер day и прочие в поля news типа news_create_data
+  -- или оставить это верификации? может это и есть верификация?
+  let e_orders = mapM (fmap (fromString . T.unpack)) (fmap decodeUtf8' ordersB)
+
+  e_news <- case (e_limit, e_offset, e_orders) of
+    (Right limit, Right offset, Right orders) ->
+      Right <$> P.queryNewsLimitOffset postgres limit offset orders
+    (Right limit, Left _, Right orders) ->
+      Right <$> P.queryNewsLimit postgres limit orders
+    (Left _, Right offset, Right orders) ->
+      Right <$> P.queryNewsOffset postgres offset orders
+    (Left _, Left _, Right orders) ->
+      Right <$> P.queryNews postgres orders
+    e_err ->
+      return $ Left $ encodeUtf8 $ showt e_err
+  pure $ case e_news of
+    Left bs -> Error bs
+    Right news -> case filter (Right news) of
+      (Left bs) -> Error bs
+      (Right news) -> N news
 
 getCat :: Postgres -> Request -> IO Choose
-getCat postgres _ = do
+getCat postgres Request {..} = do
+  -- todo: filter cats
+  let filter cats = foldl' actionFilter cats queryString
+
   -- доступно всем
   C <$> P.queryAllCategory postgres
 
@@ -70,6 +88,11 @@ getUnpublishNews postgres Request {..} = do
   e_user_id <- (pure . fmap (UserId . user_id)) =<< giveUser postgres requestHeaders
   let e_limit = findAndDecode "limit" queryString
   let e_offset = findAndDecode "offset" queryString
+
+  let (ordersB, filters) = findInQueryList "sort_by" queryString
+  let filter news = foldl' actionFilter news filters
+  let e_orders = mapM (fmap (fromString . T.unpack)) (fmap decodeUtf8' ordersB)
+
   case (e_user_id, e_limit, e_offset) of
     (Right user_id, Right limit, Right offset) ->
       N <$> P.queryUnpublishNewsLimitOffset postgres limit offset user_id
@@ -87,6 +110,11 @@ getUsers postgres Request {..} = do
   -- доступно всем
   let e_limit = findAndDecode "limit" queryString
   let e_offset = findAndDecode "offset" queryString
+
+  let (ordersB, filters) = findInQueryList "sort_by" queryString
+  let filter news = foldl' actionFilter news filters
+  let e_orders = mapM (fmap (fromString . T.unpack)) (fmap decodeUtf8' ordersB)
+
   U <$> case (e_limit, e_offset) of
     (Right limit, Right offset) ->
       P.queryUsersLimitOffset postgres limit offset

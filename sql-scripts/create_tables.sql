@@ -33,5 +33,6 @@ CREATE TABLE tableNewsRow (
   news_user_id int NOT NULL,
   news_cat_id int NOT NULL,
   news_content text NOT NULL,
-  news_publish boolean NOT NULL
+  news_publish boolean NOT NULL,
+  news_imgs_len int NoT NULL
 );

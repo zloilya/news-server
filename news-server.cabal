@@ -36,7 +36,6 @@ library
       Database.PostgresQuery
       Database.Query
       Encode
-      Example
       Filters
       Lib
       Types

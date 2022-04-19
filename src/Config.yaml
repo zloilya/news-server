@@ -12,6 +12,18 @@ dbname: "news_server"
 # limit for query
 limit: 20
 
+# defult sort for news query 
+defSortNews: "news_id"
+
+# defult sort for news query 
+defSortUser: "user_id"
+
+# defult sort for news query 
+defSortCat: "cat_id"
+
+# defult sort for news query 
+defSortImg: "img_id"
+
 # log level: Debug | Info | Warn
 loglevel: "Debug"
 

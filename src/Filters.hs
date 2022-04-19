@@ -56,23 +56,10 @@ catTextF = filtredF pred
     pred :: Text -> News -> Bool
     pred dec news = dec `isInfixOf` (cat_description . news_cat $ news)
 
-compareF :: Ord a => (News -> a) -> News -> News -> Ordering
-compareF get news news' = compare (get news) (get news')
-
-sortByF :: ByteString -> [News] -> [News]
-sortByF "day" = sortBy (compareF (news_create_date . news_row))
-sortByF "author" = sortBy (compareF (user_name . news_user))
-sortByF "category" = sortBy (compareF (cat_description . news_cat))
-sortByF "photos" = sortBy (compareF (length . news_imgs))
-sortByF _ = id
-
 actionFilter :: Either ByteString [News] -> (ByteString, Maybe ByteString) -> Either ByteString [News]
-actionFilter (Right news) pair = actionFilter' news pair
 actionFilter (Left e) _ = Left e
-
-actionFilter' :: [News] -> (ByteString, Maybe ByteString) -> Either ByteString [News]
-actionFilter' news (_, Nothing) = Right news
-actionFilter' news (key, Just value) = case key of
+actionFilter (Right news) (_, Nothing) = Right news
+actionFilter (Right news) (key, Just value) = case key of
   "created_at" -> Right $ createdF (==) value news
   "created_until" -> Right $ createdF (>) value news
   "created_since" -> Right $ createdF (<) value news
@@ -81,5 +68,4 @@ actionFilter' news (key, Just value) = case key of
   "category_description" -> Right $ catTextF value news
   "title" -> Right $ titleF value news
   "content" -> Right $ contentF value news
-  "sort_by" -> Right $ sortByF value news
   _ -> Left $ "unidentified filter"

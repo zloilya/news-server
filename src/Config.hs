@@ -29,6 +29,10 @@ data Config = Config
   { host :: Text,
     dbname :: Text,
     limit :: Int,
+    defSortNews :: Query,
+    defSortUser :: Query,
+    defSortCat :: Query,
+    defSortImg :: Query,
     loglevel :: Priority,
     tables :: Tables
   }
